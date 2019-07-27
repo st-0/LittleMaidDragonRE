@@ -1,10 +1,10 @@
 [
 {
-  "modid": "lmdragon",
-  "name": "LittleMaidDragonRE",
-  "description": "LittleMaidDragon for 1.12.2",
-  "version": "1.12.2-1.0",
-  "mcversion": "1.12.2",
+  "modid": "mod.ymt.lmd.LittleMaidDragon",
+  "name": "LittleMaidDragonNX",
+  "description": "LittleMaidDragon for 1.8.x",
+  "version": "1.8.x-1.0",
+  "mcversion": "1.8.x",
   "url": "https://twitter.com/st_0_",
   "updateUrl": "",
   "authorList": ["yamato(waco), SATO-REI"],
