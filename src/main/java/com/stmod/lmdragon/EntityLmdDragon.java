@@ -1,0 +1,132 @@
+/**
+ * Copyright 2015 Yamato
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.stmod.lmdragon;
+
+import com.TheRPGAdventurer.ROTD.objects.entity.entitytameabledragon.EntityTameableDragon;
+import com.TheRPGAdventurer.ROTD.objects.entity.entitytameabledragon.helper.DragonLifeStage;
+
+import net.minecraft.entity.EntityLiving;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Items;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.EnumHand;
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.world.World;
+
+public class EntityLmdDragon extends EntityTameableDragon {
+	private NBTTagCompound maidsanData = null;
+
+	public EntityLmdDragon(World world) {
+		super(world);
+	}
+
+	@Override
+	public boolean processInteract(EntityPlayer player, EnumHand hand) {
+		// isOwner -> func_152114_e
+		if (isTamed() && isOwner(player) && Utils.tryUseItems(player, Items.SUGAR, true)) {
+			if (switchToMaidsan(player, this)) { // メイドさんに変身
+				setDead();
+			}
+			return true;
+		}
+		return super.processInteract(player, hand);
+	}
+
+	@Override
+	public void readEntityFromNBT(NBTTagCompound nbt) {
+		super.readEntityFromNBT(nbt);
+		if (nbt.hasKey("maidsan")) {
+			maidsanData = nbt.getCompoundTag("maidsan");
+		}
+	}
+
+	public void setEntityMaid(EntityLiving maid) {
+		if (maid == null) {
+			maidsanData = null;
+		}
+		else {
+			maidsanData = new NBTTagCompound();
+			maid.writeEntityToNBT(maidsanData);
+		}
+	}
+
+	@Override
+	public void writeEntityToNBT(NBTTagCompound nbt) {
+		super.writeEntityToNBT(nbt);
+		if (maidsanData != null) {
+			maidsanData.removeTag("dragon"); // 消しておかないと肥大化する
+			nbt.setTag("maidsan", maidsanData.copy());
+		}
+	}
+
+	public static boolean switchDragon(EntityPlayer player, EntityLmdMaidsan maid) {
+		NBTTagCompound tag = maid.getDragonData();
+		if (player.getEntityWorld().isRemote)
+			return true;
+		EntityLmdDragon dragon = new EntityLmdDragon(player.getEntityWorld());
+		if (tag != null && !tag.hasNoTags()) {
+			dragon.readEntityFromNBT(tag);
+		}
+		if (!dragon.isTamed()) {
+			dragon.setTamed(true);
+		}
+		if (!dragon.isSaddled()) {
+			dragon.dragonInv.setInventorySlotContents(0, new ItemStack(Items.SADDLE));
+			dragon.setSaddled(true);
+		}
+		dragon.getLifeStageHelper().setLifeStage(DragonLifeStage.ADULT);
+		dragon.setEntityMaid(maid); // ドラゴンをロードした後に改めて設定
+		dragon.navigator.clearPath();
+		dragon.setAttackTarget(null);
+		dragon.setLocationAndAngles(maid.posX, maid.posY, maid.posZ, MathHelper.wrapDegrees(player.getEntityWorld().rand.nextFloat() * 360.0F), 0);
+		dragon.rotationYawHead = dragon.rotationYaw;
+		dragon.renderYawOffset = dragon.rotationYaw;
+		if (maid.hasCustomName()) {
+			String customname = maid.getCustomNameTag();
+			dragon.setCustomNameTag(customname);
+		}
+		return player.getEntityWorld().spawnEntity(dragon);
+	}
+
+	public static boolean switchToMaidsan(EntityPlayer player, EntityLmdDragon dragon) {
+		if (player.getEntityWorld().isRemote)
+			return false;
+		NBTTagCompound tag = dragon.maidsanData;
+		EntityLmdMaidsan maid = new EntityLmdMaidsan(player.getEntityWorld());
+		if (tag != null && !tag.hasNoTags()) {
+			maid.readEntityFromNBT(tag);
+		}
+		else {
+			maid.initNewMaidsan(player, dragon.isSaddled());
+		}
+		maid.setEntityDragon(dragon); // メイドさんをロードした後に改めて設定
+		maid.getNavigator().clearPath();
+		maid.setAttackTarget(null);
+		maid.setLocationAndAngles(dragon.posX, dragon.posY, dragon.posZ, MathHelper.wrapDegrees(player.getEntityWorld().rand.nextFloat() * 360.0F), 0);
+		maid.rotationYawHead = maid.rotationYaw;
+		maid.renderYawOffset = maid.rotationYaw;
+		maid.setMaidMode("Escorter");
+		maid.setMaidWait(true);
+		maid.setFreedom(false);
+		maid.changedFromDragon = true; // 竜へ変身した時の動作
+		if (dragon.hasCustomName()) {
+			String customname = dragon.getCustomNameTag();
+			maid.setCustomNameTag(customname);
+		}
+		return player.getEntityWorld().spawnEntity(maid);
+	}
+}
