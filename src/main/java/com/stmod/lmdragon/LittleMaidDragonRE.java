@@ -15,10 +15,8 @@
  */
 package com.stmod.lmdragon;
 
-import com.TheRPGAdventurer.ROTD.objects.entity.entitytameabledragon.EntityTameableDragon;
-
+import info.ata4.minecraft.dragon.server.entity.EntityTameableDragon;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -36,20 +34,20 @@ import net.minecraftforge.fml.common.registry.EntityRegistry;
 public class LittleMaidDragonRE {
 	public static final String MODID = "lmdragon";
 	public static final String NAME = "LittleMaidDragonRE";
-	public static final String VERSION = "1.12.2-1.0";
-	public static final String DEPENDENCIES = "required-after:dragonmounts;required-after:lmreengaged";
-	public static final String ACCEPTED_MCVERSIONS = "[1.12.2]";
+	public static final String VERSION = "1.10.2-1.0";
+	public static final String DEPENDENCIES = "required-after:DragonMounts;required-after:lmreengaged";
+	public static final String ACCEPTED_MCVERSIONS = "[1.9.4,1.10.2]";
 	private static final String MAIDSAN_STRING = "DragonMaidsan";
 	private static final String DRAGON_STRING = "DragonMount";
 
 	@EventHandler
 	public void onInit(FMLInitializationEvent event) {
 		// ドラゴン追加
-		EntityRegistry.registerModEntity(new ResourceLocation(MODID, DRAGON_STRING), EntityLmdDragon.class, DRAGON_STRING, 1, this, 80, 3, true);
+		EntityRegistry.registerModEntity(EntityLmdDragon.class, DRAGON_STRING, 1, this, 80, 3, true);
 		// STRING が被るように追加すると、ワールドロード時に差し替えが発生する
 
 		// メイドさん追加
-		EntityRegistry.registerModEntity(new ResourceLocation(MODID, MAIDSAN_STRING), EntityLmdMaidsan.class, MAIDSAN_STRING, 0, this, 80, 3, true);
+		EntityRegistry.registerModEntity(EntityLmdMaidsan.class, MAIDSAN_STRING, 0, this, 80, 3, true);
 
 		// イベントバスに追加
 		MinecraftForge.EVENT_BUS.register(this);
@@ -65,7 +63,7 @@ public class LittleMaidDragonRE {
 				EntityLmdDragon dragon = new EntityLmdDragon(event.getWorld());
 				dragon.readFromNBT(tag);
 				event.setCanceled(true);
-				event.getWorld().spawnEntity(dragon);
+				event.getWorld().spawnEntityInWorld(dragon);
 			}
 		}
 	}
