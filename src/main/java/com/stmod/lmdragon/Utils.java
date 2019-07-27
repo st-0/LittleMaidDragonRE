@@ -36,8 +36,8 @@ public class Utils {
 		ItemStack curItem = player.getHeldItemMainhand();
 		if (curItem != null && curItem.getItem() == item && (damage < 0 || curItem.getItemDamage() == damage)) {
 			if (consumed && !player.capabilities.isCreativeMode) {
-				curItem.shrink(1);
-				if (curItem.getCount() <= 0) {
+				curItem.stackSize--;
+				if (curItem.stackSize <= 0) {
 					player.inventory.setInventorySlotContents(player.inventory.currentItem, null);
 				}
 			}

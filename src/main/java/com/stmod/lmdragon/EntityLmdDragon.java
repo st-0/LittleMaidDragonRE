@@ -15,9 +15,10 @@
  */
 package com.stmod.lmdragon;
 
-import com.TheRPGAdventurer.ROTD.objects.entity.entitytameabledragon.EntityTameableDragon;
-import com.TheRPGAdventurer.ROTD.objects.entity.entitytameabledragon.helper.DragonLifeStage;
+import javax.annotation.Nullable;
 
+import info.ata4.minecraft.dragon.server.entity.EntityTameableDragon;
+import info.ata4.minecraft.dragon.server.entity.helper.EnumDragonLifeStage;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
@@ -35,15 +36,15 @@ public class EntityLmdDragon extends EntityTameableDragon {
 	}
 
 	@Override
-	public boolean processInteract(EntityPlayer player, EnumHand hand) {
+	public boolean processInteract(EntityPlayer player, EnumHand hand, @Nullable ItemStack stack) {
 		// isOwner -> func_152114_e
-		if (isTamed() && isOwner(player) && Utils.tryUseItems(player, Items.SUGAR, true)) {
+		if (isTamed() && isOwner(player) && Utils.tryUseItems(player, Items.sugar, true)) {
 			if (switchToMaidsan(player, this)) { // メイドさんに変身
 				setDead();
 			}
 			return true;
 		}
-		return super.processInteract(player, hand);
+		return super.processInteract(player, hand, stack);
 	}
 
 	@Override
@@ -75,9 +76,9 @@ public class EntityLmdDragon extends EntityTameableDragon {
 
 	public static boolean switchDragon(EntityPlayer player, EntityLmdMaidsan maid) {
 		NBTTagCompound tag = maid.getDragonData();
-		if (player.getEntityWorld().isRemote)
+		if (player.worldObj.isRemote)
 			return true;
-		EntityLmdDragon dragon = new EntityLmdDragon(player.getEntityWorld());
+		EntityLmdDragon dragon = new EntityLmdDragon(player.worldObj);
 		if (tag != null && !tag.hasNoTags()) {
 			dragon.readEntityFromNBT(tag);
 		}
@@ -85,28 +86,27 @@ public class EntityLmdDragon extends EntityTameableDragon {
 			dragon.setTamed(true);
 		}
 		if (!dragon.isSaddled()) {
-			dragon.dragonInv.setInventorySlotContents(0, new ItemStack(Items.SADDLE));
 			dragon.setSaddled(true);
 		}
-		dragon.getLifeStageHelper().setLifeStage(DragonLifeStage.ADULT);
+		dragon.getLifeStageHelper().setLifeStage(EnumDragonLifeStage.ADULT);
 		dragon.setEntityMaid(maid); // ドラゴンをロードした後に改めて設定
-		dragon.navigator.clearPath();
+		dragon.navigator.clearPathEntity();
 		dragon.setAttackTarget(null);
-		dragon.setLocationAndAngles(maid.posX, maid.posY, maid.posZ, MathHelper.wrapDegrees(player.getEntityWorld().rand.nextFloat() * 360.0F), 0);
+		dragon.setLocationAndAngles(maid.posX, maid.posY, maid.posZ, MathHelper.wrapAngleTo180_float(player.worldObj.rand.nextFloat() * 360.0F), 0);
 		dragon.rotationYawHead = dragon.rotationYaw;
 		dragon.renderYawOffset = dragon.rotationYaw;
 		if (maid.hasCustomName()) {
 			String customname = maid.getCustomNameTag();
 			dragon.setCustomNameTag(customname);
 		}
-		return player.getEntityWorld().spawnEntity(dragon);
+		return player.worldObj.spawnEntityInWorld(dragon);
 	}
 
 	public static boolean switchToMaidsan(EntityPlayer player, EntityLmdDragon dragon) {
-		if (player.getEntityWorld().isRemote)
+		if (player.worldObj.isRemote)
 			return false;
 		NBTTagCompound tag = dragon.maidsanData;
-		EntityLmdMaidsan maid = new EntityLmdMaidsan(player.getEntityWorld());
+		EntityLmdMaidsan maid = new EntityLmdMaidsan(player.worldObj);
 		if (tag != null && !tag.hasNoTags()) {
 			maid.readEntityFromNBT(tag);
 		}
@@ -114,9 +114,9 @@ public class EntityLmdDragon extends EntityTameableDragon {
 			maid.initNewMaidsan(player, dragon.isSaddled());
 		}
 		maid.setEntityDragon(dragon); // メイドさんをロードした後に改めて設定
-		maid.getNavigator().clearPath();
+		maid.getNavigator().clearPathEntity();
 		maid.setAttackTarget(null);
-		maid.setLocationAndAngles(dragon.posX, dragon.posY, dragon.posZ, MathHelper.wrapDegrees(player.getEntityWorld().rand.nextFloat() * 360.0F), 0);
+		maid.setLocationAndAngles(dragon.posX, dragon.posY, dragon.posZ, MathHelper.wrapAngleTo180_float(player.worldObj.rand.nextFloat() * 360.0F), 0);
 		maid.rotationYawHead = maid.rotationYaw;
 		maid.renderYawOffset = maid.rotationYaw;
 		maid.setMaidMode("Escorter");
@@ -127,6 +127,6 @@ public class EntityLmdDragon extends EntityTameableDragon {
 			String customname = dragon.getCustomNameTag();
 			maid.setCustomNameTag(customname);
 		}
-		return player.getEntityWorld().spawnEntity(maid);
+		return player.worldObj.spawnEntityInWorld(maid);
 	}
 }

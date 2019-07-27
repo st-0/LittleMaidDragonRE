@@ -17,7 +17,9 @@ package com.stmod.lmdragon;
 
 import java.util.Random;
 
-import net.blacklab.lmr.entity.littlemaid.EntityLittleMaid;
+import javax.annotation.Nullable;
+
+import net.blacklab.lmr.entity.EntityLittleMaid;
 import net.blacklab.lmr.util.helper.CommonHelper;
 import net.blacklab.lmr.util.helper.OwnableEntityHelper;
 import net.minecraft.entity.EntityLiving;
@@ -64,51 +66,51 @@ public class EntityLmdMaidsan extends EntityLittleMaid {
 			setTamed(true);
 			OwnableEntityHelper.setOwner(this, CommonHelper.getPlayerUUID(player));
 			maidContractLimit = (24000 * 7); // 初期契約期間
-			maidAnniversary = player.getEntityWorld().getTotalWorldTime() + 63072000000L; // 契約記念日
+			maidAnniversary = player.worldObj.getTotalWorldTime() + 63072000000L; // 契約記念日
 			// LittleMaidMob に合わせて getWorldTime にしてあるけど、doDaylightCycle を考慮するなら getTotalWorldTime が正解
 			// ただ LMD 側だけ getTotalWorldTime にしてしまうと、getWorldTime を使う LMM と逆に重複してしまう可能性が僅かにあるので、
 			// 重複する可能性の無いように 100 年を加算する
 			// MEMO: 100 * 365 * 24 * 60 * 60 * 20 = 63072000000L
-			if (hasSaddle && maidInventory.mainInventory.get(0) == ItemStack.EMPTY) {
+			if (hasSaddle && maidInventory.mainInventory[0] == null) {
 				// サドルを持たせる
-				maidInventory.mainInventory.set(0, new ItemStack(Items.SADDLE));
+				maidInventory.mainInventory[0] = new ItemStack(Items.saddle);
 			}
 		}
 	}
 
 	@Override
-	public boolean processInteract(EntityPlayer player, EnumHand hand) {
+	public boolean processInteract(EntityPlayer player, EnumHand hand, @Nullable ItemStack stack) {
 		// ほんとはEntityModelBaseを継承するのが正攻法なんだろうけど、これだけの処理で作るのも微妙なので
 		if (isCommandWaiting(player)) {
-			if (isMaidHanded(Items.SADDLE) && Utils.tryUseItems(player, Items.SUGAR, true)) {
+			if (isMaidHanded(Items.saddle) && Utils.tryUseItems(player, Items.sugar, true)) {
 				eatSugar(false, false, true);
 				if (EntityLmdDragon.switchDragon(player, this)) {
-					if (world.isRemote)
-						world.spawnParticle(EnumParticleTypes.EXPLOSION_HUGE, posX, posY, posZ, 1.0D, 0.0D, 0.0D);
+					if (worldObj.isRemote)
+						worldObj.spawnParticle(EnumParticleTypes.EXPLOSION_HUGE, posX, posY, posZ, 1.0D, 0.0D, 0.0D);
 					else
-						world.playSound(null, posX, posY, posZ, SoundEvents.ENTITY_GENERIC_EXPLODE, SoundCategory.PLAYERS, 1.0F, 1.0F);
+						worldObj.playSound(null, posX, posY, posZ, SoundEvents.entity_generic_explode, SoundCategory.PLAYERS, 1.0F, 1.0F);
 					setDead();
 				}
 				return true;
 			}
 		}
-		return super.processInteract(player, hand);
+		return super.processInteract(player, hand, stack);
 	}
 
 	@Override
 	public void onDeath(DamageSource par1DamageSource) {
 		super.onDeath(par1DamageSource);
-		dropItem(Item.getItemFromBlock(Blocks.DRAGON_EGG), 1);
+		dropItem(Item.getItemFromBlock(Blocks.dragon_egg), 1);
 	}
 
 	@Override
 	public void onLivingUpdate() {
 		if (changedFromDragon) {
-			world.setEntityState(this, (byte) 15);
+			worldObj.setEntityState(this, (byte) 15);
 			changedFromDragon = false;
 		}
-		if (world.isRemote && world.rand.nextInt(10) == 0) {
-			spawnPortalParticle(world, posX, posY, posZ);
+		if (worldObj.isRemote && worldObj.rand.nextInt(10) == 0) {
+			spawnPortalParticle(worldObj, posX, posY, posZ);
 		}
 		super.onLivingUpdate();
 	}
