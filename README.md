@@ -3,7 +3,7 @@ Transform your dragon into LittleMaid.
 
 [Original Mod](https://forum.minecraftuser.jp/viewtopic.php?t=10418) by waco
 
-[Recommended DragonMaidModel](https://forum.minecraftuser.jp/viewtopic.php?f=13&t=23347&start=220#p213994) by smr_c
+~~[Recommended DragonMaidModel](https://forum.minecraftuser.jp/viewtopic.php?f=13&t=23347&start=220#p213994) by smr_c~~
 
 ## Installation
 1. Install [Minecraft Forge](https://files.minecraftforge.net/) & [LittleMaidMobNX](https://github.com/Verclene/LittleMaidMobNX) / [Reengaged](https://github.com/Verclene/LittleMaidReengaged) & [Dragon Mounts](https://www.curseforge.com/minecraft/mc-mods/dm2)
